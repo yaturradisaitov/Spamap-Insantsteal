@@ -7,7 +7,7 @@ local myHomePos = nil
 local autoSteal = false
 local autoKick = false
 
--- Функция отправки команд
+-- Функция моментальной отправки команд
 local function sendCmd(msg)
     if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
         local channel = TextChatService.TextChannels.RBXGeneral
@@ -69,7 +69,7 @@ ListFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20); ListFrame.Visible = fal
 Instance.new("UICorner", ListFrame)
 
 local ListTitle = Instance.new("TextLabel", ListFrame)
-ListTitle.Size = UDim2.new(1, 0, 0.15, 0); ListTitle.Text = "FULL SPAM AP"; ListTitle.TextColor3 = Color3.new(1,1,1); ListTitle.BackgroundTransparency = 1; ListTitle.Font = Enum.Font.GothamBold; ListTitle.TextSize = 12
+ListTitle.Size = UDim2.new(1, 0, 0.15, 0); ListTitle.Text = "INSTANT SPAM AP"; ListTitle.TextColor3 = Color3.new(1,1,1); ListTitle.BackgroundTransparency = 1; ListTitle.Font = Enum.Font.GothamBold; ListTitle.TextSize = 12
 
 local Scroll = Instance.new("ScrollingFrame", ListFrame)
 Scroll.Size = UDim2.new(0.9, 0, 0.8, 0); Scroll.Position = UDim2.new(0.05, 0, 0.15, 0); Scroll.BackgroundTransparency = 1; Scroll.CanvasSize = UDim2.new(0,0,0,0); Scroll.ScrollBarThickness = 2
@@ -114,17 +114,14 @@ local function update()
             local sBtn = Instance.new("TextButton", f); sBtn.Size = UDim2.new(0.3,0,0.8,0); sBtn.Position = UDim2.new(0.65,0,0.1,0); sBtn.Text = "SPAM"; sBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0); sBtn.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", sBtn)
             
             sBtn.MouseButton1Click:Connect(function()
-                -- Все функции со скриншота (кроме ночного видения)
+                -- Список команд (без задержки)
                 local cmds = {
                     ";ragdoll ", ";inverse ", ";jail ", ";small ", 
                     ";morph ", ";rocket ", ";balloon ", ";control ", ";jumpscare "
                 }
-                task.spawn(function()
-                    for _, c in pairs(cmds) do
-                        sendCmd(c .. p.Name)
-                        task.wait(0.2) -- Быстрый проспам всех команд
-                    end
-                end)
+                for _, c in pairs(cmds) do
+                    sendCmd(c .. p.Name)
+                end
             end)
         end
     end
