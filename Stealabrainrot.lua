@@ -7,7 +7,7 @@ local myHomePos = nil
 local autoSteal = false
 local autoKick = false
 
--- Отправка команд (Ragdoll)
+-- Функция отправки команд
 local function sendCmd(msg)
     if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
         local channel = TextChatService.TextChannels.RBXGeneral
@@ -18,24 +18,10 @@ local function sendCmd(msg)
     end
 end
 
--- Защита от смерти (Anti-Death)
-task.spawn(function()
-    while task.wait() do
-        pcall(function()
-            local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-            if hum then
-                hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
-                if hum.Health <= 0 then hum.Health = 100 end
-            end
-        end)
-    end
-end)
-
 -- Плавный полет (Tween) с NoClip
 local function safeMove(targetCFrame)
     local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
-    
     local noclip = RunService.Stepped:Connect(function()
         if player.Character then
             for _, v in pairs(player.Character:GetDescendants()) do
@@ -43,12 +29,10 @@ local function safeMove(targetCFrame)
             end
         end
     end)
-
     local dist = (hrp.Position - targetCFrame.Position).Magnitude
     local tween = TweenService:Create(hrp, TweenInfo.new(dist/25, Enum.EasingStyle.Linear), {CFrame = targetCFrame})
     tween:Play()
     tween.Completed:Wait()
-    
     noclip:Disconnect()
     task.wait(0.5)
 end
@@ -65,13 +49,12 @@ local function doSteal()
     if target then
         safeMove(target.CFrame + Vector3.new(0, 5, 0))
         task.wait(0.6)
-        -- Возвращаемся в точку базы + 5 метров высоты (ЧТОБЫ НЕ ТЕПАЛО НАЗАД)
         safeMove(CFrame.new(myHomePos + Vector3.new(0, 5, 0)))
         if autoKick then player:Kick("Stolen!") end
     end
 end
 
--- ИНТЕРФЕЙС (Как на скриншоте)
+-- ИНТЕРФЕЙС
 if player.PlayerGui:FindFirstChild("ErZarHub") then player.PlayerGui.ErZarHub:Destroy() end
 local ScreenGui = Instance.new("ScreenGui", player.PlayerGui); ScreenGui.Name = "ErZarHub"; ScreenGui.ResetOnSpawn = false
 
@@ -81,12 +64,12 @@ Main.BackgroundColor3 = Color3.fromRGB(0, 160, 255); Main.Draggable = true; Main
 Instance.new("UICorner", Main)
 
 local ListFrame = Instance.new("Frame", ScreenGui)
-ListFrame.Size = UDim2.new(0, 220, 0, 250); ListFrame.Position = UDim2.new(0.05, 210, 0.3, 0)
+ListFrame.Size = UDim2.new(0, 220, 0, 260); ListFrame.Position = UDim2.new(0.05, 210, 0.3, 0)
 ListFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20); ListFrame.Visible = false; ListFrame.Draggable = true; ListFrame.Active = true
 Instance.new("UICorner", ListFrame)
 
 local ListTitle = Instance.new("TextLabel", ListFrame)
-ListTitle.Size = UDim2.new(1, 0, 0.15, 0); ListTitle.Text = "SPAM AP"; ListTitle.TextColor3 = Color3.new(1,1,1); ListTitle.BackgroundTransparency = 1; ListTitle.Font = Enum.Font.GothamBold; ListTitle.TextSize = 14
+ListTitle.Size = UDim2.new(1, 0, 0.15, 0); ListTitle.Text = "FULL SPAM AP"; ListTitle.TextColor3 = Color3.new(1,1,1); ListTitle.BackgroundTransparency = 1; ListTitle.Font = Enum.Font.GothamBold; ListTitle.TextSize = 12
 
 local Scroll = Instance.new("ScrollingFrame", ListFrame)
 Scroll.Size = UDim2.new(0.9, 0, 0.8, 0); Scroll.Position = UDim2.new(0.05, 0, 0.15, 0); Scroll.BackgroundTransparency = 1; Scroll.CanvasSize = UDim2.new(0,0,0,0); Scroll.ScrollBarThickness = 2
@@ -100,16 +83,12 @@ end
 
 local B1 = createBtn("SET MY BASE 🏠", UDim2.new(0.05, 0, 0.05, 0), Main, Color3.fromRGB(0, 110, 210))
 local B2 = createBtn("AUTO-STEAL: OFF ⭕", UDim2.new(0.05, 0, 0.28, 0), Main, Color3.fromRGB(0, 90, 190))
-local B3 = createBtn("SPAM AP LIST 📢", UDim2.new(0.05, 0, 0.51, 0), Main, Color3.fromRGB(180, 100, 0))
+local B3 = createBtn("OPEN SPAM AP 📢", UDim2.new(0.05, 0, 0.51, 0), Main, Color3.fromRGB(180, 100, 0))
 local B4 = createBtn("AUTO-KICK: OFF ❌", UDim2.new(0.05, 0, 0.74, 0), Main, Color3.fromRGB(180, 0, 0))
 
 B1.MouseButton1Click:Connect(function()
     local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        myHomePos = hrp.Position
-        B1.Text = "BASE SAVED! ✅"
-        task.wait(1); B1.Text = "SET MY BASE 🏠"
-    end
+    if hrp then myHomePos = hrp.Position; B1.Text = "BASE SAVED! ✅" end
 end)
 
 B2.MouseButton1Click:Connect(function()
@@ -125,17 +104,30 @@ B4.MouseButton1Click:Connect(function()
     B4.Text = autoKick and "KICK: ON ✅" or "KICK: OFF ❌"
 end)
 
+-- Обновление списка игроков
 local function update()
     for _, v in pairs(Scroll:GetChildren()) do if v:IsA("Frame") then v:Destroy() end end
     for _, p in pairs(game.Players:GetPlayers()) do
         if p ~= player then
-            local f = Instance.new("Frame", Scroll); f.Size = UDim2.new(1, 0, 0, 30); f.BackgroundColor3 = Color3.new(0.15,0.15,0.15); Instance.new("UICorner", f)
+            local f = Instance.new("Frame", Scroll); f.Size = UDim2.new(1, 0, 0, 35); f.BackgroundColor3 = Color3.new(0.15,0.15,0.15); Instance.new("UICorner", f)
             local n = Instance.new("TextLabel", f); n.Size = UDim2.new(0.6,0,1,0); n.Text = p.DisplayName; n.TextColor3 = Color3.new(1,1,1); n.BackgroundTransparency = 1; n.TextScaled = true
-            local rb = Instance.new("TextButton", f); rb.Size = UDim2.new(0.3,0,0.8,0); rb.Position = UDim2.new(0.65,0,0.1,0); rb.Text = "RAGDOLL"; rb.BackgroundColor3 = Color3.fromRGB(150,0,0); rb.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", rb)
-            rb.MouseButton1Click:Connect(function() sendCmd(";ragdoll " .. p.Name) end)
+            local sBtn = Instance.new("TextButton", f); sBtn.Size = UDim2.new(0.3,0,0.8,0); sBtn.Position = UDim2.new(0.65,0,0.1,0); sBtn.Text = "SPAM"; sBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0); sBtn.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", sBtn)
+            
+            sBtn.MouseButton1Click:Connect(function()
+                -- Все функции со скриншота (кроме ночного видения)
+                local cmds = {
+                    ";ragdoll ", ";inverse ", ";jail ", ";small ", 
+                    ";morph ", ";rocket ", ";balloon ", ";control ", ";jumpscare "
+                }
+                task.spawn(function()
+                    for _, c in pairs(cmds) do
+                        sendCmd(c .. p.Name)
+                        task.wait(0.2) -- Быстрый проспам всех команд
+                    end
+                end)
+            end)
         end
     end
 end
 
 game.Players.PlayerAdded:Connect(update); game.Players.PlayerRemoving:Connect(update); update()
-
